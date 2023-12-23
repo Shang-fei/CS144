@@ -59,8 +59,10 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
 		else
 			break;
 	}
-    size_t first_unacceptable_idx = _next_assembled_idx + _capacity - _output.buffer_size();
-    if (first_unacceptable_idx <= new_idx){
+
+	const size_t first_unread = _output.bytes_read();
+    size_t first_unacceptable_idx = _capacity + first_unread;
+    if (new_idx >= first_unacceptable_idx){
         return;
 	}
 	

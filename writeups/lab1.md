@@ -1,7 +1,7 @@
 Lab 1 Writeup
 =============
 
-My name: [your name here]
+My name: [shangfei]
 
 My SUNet ID: [your sunetid here]
 
