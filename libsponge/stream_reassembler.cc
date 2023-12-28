@@ -31,15 +31,21 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
 	size_t new_idx = index;
 	if(pos_iter != _unassemble_strs.end() && pos_iter->first <= index){
 		if(pos_iter->first + pos_iter->second.size() > index){
-			new_idx = pos_iter->first + pos_iter->second.size();
+			if(pos_iter->first + pos_iter->second.size() < index + data.size())
+				new_idx = pos_iter->first + pos_iter->second.size();
+			else
+				return;
 		}
 	}
 
 	else if(index < _next_assembled_idx){
-		new_idx = _next_assembled_idx;
+		if(index + data.size() > _next_assembled_idx)
+			new_idx = _next_assembled_idx;
+		else
+			return;
     }
 
-	size_t data_start_pos = new_idx - index;
+	const size_t data_start_pos = new_idx - index;
 	ssize_t data_size = data.size() - data_start_pos;
 	
 	pos_iter = _unassemble_strs.lower_bound(new_idx);
@@ -65,7 +71,6 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     if (new_idx >= first_unacceptable_idx){
         return;
 	}
-	
 	if(data_size > 0){
 		string new_data = data.substr(data_start_pos, data_size);
 		if(_next_assembled_idx == new_idx){
