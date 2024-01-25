@@ -14,6 +14,7 @@
 //! the acknowledgment number and window size to advertise back to the
 //! remote TCPSender.
 class TCPReceiver {
+  private:
     //! Our data structure for re-assembling bytes.
 	WrappingInt32 _isn;
 	bool _set_syn_flag;

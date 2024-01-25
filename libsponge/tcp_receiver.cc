@@ -11,37 +11,34 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 using namespace std;
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
-	const TCPHeader &header = seg.header();
-
-	//LISTEN:waiting for SYN: ackno is empty
-    if (!_set_syn_flag) {
-        if (!header.syn)
+    //LISTEN:
+    if(!_set_syn_flag){
+        if(!seg.header().syn)
             return;
-        _isn = header.seqno;
         _set_syn_flag = true;
+        _isn = seg.header().seqno;
     }
+    //SYN_RECEIVED:
+    uint64_t checkpoint = stream_out().bytes_written();
+    uint64_t abs_seqno = unwrap(seg.header().seqno, _isn, checkpoint);
 
-	//SYN_RECV: SYN received(ackno exists) and input to stream hasn's ended
-    uint64_t abs_ackno = _reassembler.stream_out().bytes_written() + 1;
-    uint64_t curr_abs_seqno = unwrap(header.seqno, _isn, abs_ackno);
-
-    uint64_t stream_index = curr_abs_seqno - 1 + (header.syn);
-    _reassembler.push_substring(seg.payload().copy(), stream_index, header.fin);
+    uint64_t index = seg.header().syn ? 0 : abs_seqno - 1;  
+    _reassembler.push_substring(seg.payload().copy(), index, seg.header().fin);
 }
 
 optional<WrappingInt32> TCPReceiver::ackno() const{
-	//LISTEN
-    if (!_set_syn_flag)
+    if(!_set_syn_flag){
         return nullopt;
+    }
 
-	//SYN_RECV
-    uint64_t abs_ack_no = _reassembler.stream_out().bytes_written() + 1;
+    //SYN_RECEIEVED:
+    uint64_t offset = stream_out().bytes_written() + 1;
 
-	//FIN_RECV
-    if (_reassembler.stream_out().input_ended())
-        ++abs_ack_no;
+    //FIN_RECEIEVED:
+    if(stream_out().input_ended())
+        offset++;
 
-    return WrappingInt32(_isn) + abs_ack_no;
+    return wrap(offset, _isn);
 }
 
-size_t TCPReceiver::window_size() const {return _capacity - _reassembler.stream_out().buffer_size();}
+size_t TCPReceiver::window_size() const {return _capacity - stream_out().buffer_size();}
