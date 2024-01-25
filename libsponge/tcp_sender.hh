@@ -25,9 +25,6 @@ class RetransmissionTimer {
     }
 
     void tick(const size_t ms_since_last_tick) {
-        if (!is_started()) {
-            return;
-        }
         if (ms_since_last_tick >= _remaining_time) {
             _is_expired = true;
         } else {
@@ -67,7 +64,6 @@ class TCPSender {
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
 
-  private:
     unsigned int _RTO{_initial_retransmission_timeout};  // current retransmission timeout
     unsigned int _consecutive_retransmission_counts{0};  // the number of consecutive retransmissions
 
@@ -77,7 +73,7 @@ class TCPSender {
 
     RetransmissionTimer _timer{};
 
-    std::queue<std::pair<size_t, TCPSegment>> _segments_outstanding{};
+    std::queue<std::pair<uint64_t, TCPSegment>> _segments_outstanding{};
 
     void send_segment(TCPSegment &seg);
 
