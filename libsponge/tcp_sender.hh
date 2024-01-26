@@ -25,6 +25,8 @@ class RetransmissionTimer {
     }
 
     void tick(const size_t ms_since_last_tick) {
+        if(!is_started())
+            return;
         if (ms_since_last_tick >= _remaining_time) {
             _is_expired = true;
         } else {
